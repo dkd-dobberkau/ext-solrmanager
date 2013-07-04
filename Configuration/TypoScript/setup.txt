@@ -1,0 +1,244 @@
+# Module configuration
+module.tx_solrmanager {
+	persistence {
+		storagePid = {$module.tx_solrmanager.persistence.storagePid}
+	}
+	view {
+		templateRootPath = {$module.tx_solrmanager.view.templateRootPath}
+		partialRootPath = {$module.tx_solrmanager.view.partialRootPath}
+		layoutRootPath = {$module.tx_solrmanager.view.layoutRootPath}
+	}
+}
+
+plugin.tx_solr {
+	enabled = 1
+
+	general {
+		dateFormat.date = d.m.Y H:i
+	}
+
+	solr {
+		scheme = {$plugin.tx_solr.solr.scheme}
+		host   = {$plugin.tx_solr.solr.host}
+		port   = {$plugin.tx_solr.solr.port}
+		path   = {$plugin.tx_solr.solr.path}
+	}
+
+	index {
+			// assigns processing instructions to Solr fields during indexing, Solr field = processing instruction
+		fieldProcessingInstructions {
+			changed = timestampToIsoDate
+			created = timestampToIsoDate
+			endtime = timestampToIsoDate
+			rootline = pageUidToHierarchy
+		}
+
+		queue {
+			pages = 1
+			pages {
+				initialization = tx_solr_indexqueue_initializer_Page
+				indexingPriority = 0
+				indexer = tx_solr_indexqueue_PageIndexer
+					// only index standard pages
+				additionalWhereClause = doktype = 1 AND no_search = 0
+				fields {
+					sortAuthor_stringS = author
+					sortTitle_stringS  = title
+					sortSubTitle_stringS = subtitle
+				}
+			}
+		}
+	}
+
+	search {
+		targetPage = {$plugin.tx_solr.search.targetPage}
+
+		initializeWithEmptyQuery = 0
+		showResultsOfInitialEmptyQuery = 0
+		keepExistingParametersForNewSearches = 0
+
+		query {
+			allowEmptyQuery = 0
+			allowedSites = __solr_current_site
+			fields = content^40.0, title^5.0, keywords^2.0, tagsH1^5.0, tagsH2H3^3.0, tagsH4H5H6^2.0, tagsInline^1.0
+			getParameter = {$plugin.tx_solr.search.query.getParameter}
+		}
+
+		results {
+			resultsHighlighting = 0
+			resultsHighlighting {
+				highlightFields = content
+				fragmentSize = 200
+
+				wrap = <span class="results-highlight">|</span>
+			}
+			siteHighlighting = 0
+
+			resultsPerPage = {$plugin.tx_solr.search.results.resultsPerPage}
+			resultsPerPageSwitchOptions = 10, 25, 50
+
+			pagebrowser {
+				enabled = 1
+				disableCacheHash = 1
+
+				_LOCAL_LANG.default {
+					text_first = First
+					text_prev = Previous
+					text_next = Next
+					text_last = Last
+				}
+			}
+
+			# fieldname => processing instruction, available instructions: timestamp, skip (removes the field from the result)
+			fieldProcessingInstructions {
+				changed = timestamp
+				created = timestamp
+				indexed = timestamp
+				# TODO rename the skip instruction to remove?!
+				spell = skip
+			}
+
+			fieldRenderingInstructions {
+				url = CASE
+				url {
+					key.field = type
+
+					default = TEXT
+					default {
+						field = url
+						htmlSpecialChars = 1
+						htmlSpecialChars.preserveEntities = 1
+					}
+				}
+
+				link = CASE
+				link {
+					key.field = type
+
+					pages  = TEXT
+					pages {
+						field = title
+
+						typolink {
+							parameter.field = uid
+						}
+					}
+
+					default  = TEXT
+					default {
+						field = title
+
+						typolink {
+							parameter.field = url
+							extTarget =
+						}
+					}
+				}
+			}
+
+			showDocumentScoreAnalysis = 1
+		}
+
+		spellchecking = 1
+		spellchecking {
+			wrap = |<div class="spelling-suggestions">###LLL:didYouMean### |</div>|
+			searchUsingSpellCheckerSuggestion = 0
+			numberOfSuggestionsToTry = 0
+		}
+
+		sorting = 1
+		sorting {
+			defaultOrder = asc
+
+			options {
+				relevance {
+					field = relevance
+					label = Relevance
+				}
+
+				title {
+					field = sortTitle_stringS
+					label = Title
+				}
+
+				type {
+					field = type
+					label = Type
+				}
+
+				author {
+					field = sortAuthor_stringS
+					label = Author
+				}
+
+				created {
+					field = created
+					label = Creation Date
+				}
+			}
+		}
+
+		faceting = 1
+		faceting {
+			minimumCount = 1
+			sortBy = count
+			limit = 10
+			singleFacetMode = 0s
+			showEmptyFacets = 0
+			keepAllFacetsOnSelection = 0
+
+			facetLinkATagParams = rel="nofollow"
+
+			facetLinkUrlParameters =
+
+			facets {
+				type {
+					label = Content Type
+					field = type
+				}
+			}
+
+				// available place holders: @facetValue, @facetName, @facetLabel, @facetText
+			removeFacetLinkText = @facetLabel: @facetText
+
+			showAllLink.wrap = <li>|</li>
+		}
+
+	}
+
+	suggest = 1
+	suggest {
+		numberOfSuggestions = 10
+		suggestField = spell
+		forceHttps = 0
+	}
+
+	viewhelpers {
+		crop {
+			maxLength = 300
+			cropIndicator = ...
+		}
+	}
+
+	logging {
+		exceptions = 1
+
+		indexing {
+			indexQueueInitialization = 0
+			missingTypo3SearchMarkers = 1
+			pageIndexed = 0
+
+			queue {
+				pages = 0
+			}
+		}
+
+		query {
+			filters = 0
+			searchWords = 0
+			queryString = 0
+			rawPost = 0
+			rawGet = 0
+		}
+    }
+}

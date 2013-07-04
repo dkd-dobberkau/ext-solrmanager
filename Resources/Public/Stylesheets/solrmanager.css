@@ -1,0 +1,42 @@
+@CHARSET "US-ASCII";
+body {
+	margin: 20px;
+}
+.result {
+	width: 100%;
+	margin-bottom: 20px;
+}
+.result h3 {
+	margin-bottom: 0;
+}
+.result-info {
+	width: 15%;
+}
+.result-content {
+	width: 80%;
+	float: left;
+	margin-right: 20px;
+}
+.result-chbox {
+	width: 10%;
+	float: left;
+}
+.result:before,
+.result:after {
+	display: table;
+	content: "";
+	line-height: 0;
+}
+.result:after {
+	clear: both;
+}
+.status_ok {
+	color: #06B10C;
+	font-size: 14px;
+	margin-top: 20px;
+}
+.status_failed {
+	color: #E32F0B;
+	font-size: 14px;
+	margin-top: 20px;
+}

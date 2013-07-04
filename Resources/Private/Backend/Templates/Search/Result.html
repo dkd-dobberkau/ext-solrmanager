@@ -1,0 +1,36 @@
+<f:layout name="Main" />
+
+<f:section name="content">
+	<p>
+		<f:translate key="search.manager.query" />: {query}<br />
+		<f:translate key="search.manager.configurationType" />: {configurationType}
+	</p>
+	<br />
+	<f:form id="tx-solr-search" action="config" controller="Search" class="form-search" enctype="multipart/form-data">
+		<f:form.hidden name="configurationType" value="{configurationType}" />
+		<f:form.hidden name="query" value="{query}" />
+		<f:form.submit name="submitElevate" value="<f:translate key=\"search.manager.submit.elevate\" />" class="tx-solr-submit" />
+		<f:for each="{resultDocuments}" as="resultDocument">
+			<div class="result">
+				<h3>{resultDocument.title}</h3>
+				<div class="result-content">
+					<span class="label">{resultDocument.type}, {resultDocument.url}</span>
+					{resultDocument.content}
+				</div>
+				<div class="result-chbox">
+					<f:if condition="{0:resultDocument.elevate} == {0:'1'}">
+						<f:then>
+							<f:form.checkbox name="solrdocs[]" value="{resultDocument.id}" checked="checked"/>
+						</f:then>
+						<f:else>
+							<f:form.checkbox name="solrdocs[]" value="{resultDocument.id}" />
+						</f:else>
+					</f:if>
+				</div>
+			</div>
+		</f:for>
+	</f:form>
+
+
+</f:section>
+

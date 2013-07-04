@@ -1,0 +1,8 @@
+<f:layout name="Main" />
+
+<f:section name="content">
+	<f:render partial="searchform" arguments="{query:query}" />
+	<f:if condition="{statusMessage} != ''">
+		<p class="status_ok">{statusMessage}</p>
+	</f:if>
+</f:section>

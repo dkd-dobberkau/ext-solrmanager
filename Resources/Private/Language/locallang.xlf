@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2013-06-05T15:41:57Z" product-name="Solr Manager">
+		<header/>
+		<body>
+			<trans-unit id="search.manager.headline">
+            	<source>Solr Manager</source>
+            </trans-unit>
+            <trans-unit id="search.manager.select">
+				<source>Please select a configuration type.</source>
+			</trans-unit>
+			<trans-unit id="search.manager.elevation.status.ok">
+				<source>Elevation was saved successfully.</source>
+			</trans-unit>
+			<trans-unit id="search.manager.elevation.status.failed">
+				<source>Saving for elevation failed.</source>
+			</trans-unit>
+			<trans-unit id="search.manager.query">
+				<source>Your keyword(s)</source>
+			</trans-unit>
+			<trans-unit id="search.manager.configurationType">
+            	<source>Configuration type</source>
+           	</trans-unit>
+           	<trans-unit id="search.manager.submit.search">
+            	<source>Search</source>
+            </trans-unit>
+			<trans-unit id="search.manager.submit.elevate">
+            	<source>Elevate</source>
+             </trans-unit>
+		</body>
+	</file>
+</xliff>

@@ -1,0 +1,11 @@
+<f:form id="tx-solr-search" action="result" controller="Search" class="form-search" enctype="multipart/form-data">
+	<p><f:translate key="search.manager.select" /></p>
+	<f:form.select name="configurationType" options="{
+			contentElevation: 'content elevation',
+			stopWords: 'stop words',
+			synonyms: 'synonyms',
+			protectedWords: 'protected words'}" /> <br /><br />
+	<f:form.textfield name="tx_solr[q]" value="" class="tx-solr-q" value="{query}"  />
+	<f:form.hidden name="L" value="0" />
+	<f:form.submit name="mySubmit" value="<f:translate key=\"search.manager.submit.search\" />" class="tx-solr-submit" />
+</f:form>

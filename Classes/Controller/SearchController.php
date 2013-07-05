@@ -32,19 +32,11 @@ class Tx_Solrmanager_Controller_SearchController extends \TYPO3\CMS\Extbase\Mvc\
 	 * @var \TYPO3\CMS\Core\Page\PageRenderer
 	 */
 	protected $pageRenderer;
-	
-	/**
-	 * @var integer
-	 */
-	protected $pageId;
 
 	/**
 	 * @var Tx_Solrmanager_Controller_SolrController
 	 */
 	protected $solr;
-
-	protected $message = '';
-
 
 	
 	/**
@@ -53,8 +45,6 @@ class Tx_Solrmanager_Controller_SearchController extends \TYPO3\CMS\Extbase\Mvc\
 	 * @return void
 	 */
 	protected function initializeAction() {
-		// @todo Evaluate how the intval() call can be used with Extbase validators/filters
-		$this->pageId = intval(\TYPO3\CMS\Core\Utility\GeneralUtility::_GP('id'));
 		$this->addStylesheets();
 		$this->pageRenderer->addInlineLanguageLabelFile('EXT:solrmanager/Resources/Private/Language/locallang.xml');
 		$this->initializeSolr();
@@ -65,11 +55,15 @@ class Tx_Solrmanager_Controller_SearchController extends \TYPO3\CMS\Extbase\Mvc\
 	 */
 	public function searchAction() {
 		$requestArguments = $this->request->getArguments();
+
 		if(array_key_exists("statusMessage", $requestArguments)){
 			$this->view->assign('statusMessage', $requestArguments["statusMessage"]);
 		}
-		else {
-			$this->view->assign('statusMessage', '');
+		if(array_key_exists("errorMessage", $requestArguments)){
+			$this->view->assign('errorMessage', $requestArguments["errorMessage"]);
+		}
+		if(array_key_exists("message", $requestArguments)){
+			$this->view->assign('message', $requestArguments["message"]);
 		}
 	}
 	 
@@ -81,16 +75,25 @@ class Tx_Solrmanager_Controller_SearchController extends \TYPO3\CMS\Extbase\Mvc\
 		$resultDocuments = array();
 		$searchQuery = '';
 		$configurationType = '';
+		$showDeleteElevateButton = '-1';
 
 		$argument = $this->request->getArgument('tx_solr');
 		if(!empty($argument)) {
 			$searchQuery = trim($argument['q']);
+
 			$configurationType = $this->request->getArgument('configurationType');
 			//$language = \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('L');
 			//$this->solr->setLanguage($language);
 			$resultDocuments = $this->solr->search($searchQuery);
+
+			if($this->solr->hasKeywordsInElevateQueries($searchQuery)) {
+				$showDeleteElevateButton = '1';
+			}
 		}
 
+		$showElevateButton = (empty($resultDocuments)) ? '-1' : '1';
+		$this->view->assign('showDeleteElevateBtn',$showDeleteElevateButton);
+		$this->view->assign('showElevateBtn',$showElevateButton);
 		$this->view->assign('query',$searchQuery);
 		$this->view->assign('configurationType',$configurationType);
 		$this->view->assign('resultDocuments',$resultDocuments);
@@ -104,17 +107,32 @@ class Tx_Solrmanager_Controller_SearchController extends \TYPO3\CMS\Extbase\Mvc\
 	}
 
 	public function configAction() {
-		$solrdocs = $this->request->getArgument('solrdocs');
-		$query = $this->request->getArgument('query');
-
 		// content elevation
 		if($this->request->getArgument('configurationType') == 'contentElevation') {
-			$success = $this->solr->writeContentElevation($query, $solrdocs);
-			$statusMessage = $GLOBALS['LANG']->sL('LLL:EXT:solrmanager/Resources/Private/Language/locallang.xml:search.manager.elevation.status.failed');
-			if($success) {
-				$statusMessage = $GLOBALS['LANG']->sL('LLL:EXT:solrmanager/Resources/Private/Language/locallang.xml:search.manager.elevation.status.ok');
+			$query = $this->request->getArgument('query');
+			$requestArguments = $this->request->getArguments();
+			if(array_key_exists("submitElevate", $requestArguments)){
+				$solrdocs = $this->request->getArgument('solrdocs');
 			}
-			$this->redirect("search", NULL, NULL, array("statusMessage" => $statusMessage));
+			else if(array_key_exists("deleteElevate", $requestArguments)){
+				$solrdocs = array();
+			}
+			else if(array_key_exists("submitCancel", $requestArguments)){
+				$this->redirect("search");
+			}
+
+			$success = $this->solr->writeContentElevation($query, $solrdocs);
+			$errorMessage = $GLOBALS['LANG']->sL('LLL:EXT:solrmanager/Resources/Private/Language/locallang.xml:search.manager.elevation.status.failed');
+			$statusMessage = '';
+			if($success && !empty($solrdocs)) {
+				$statusMessage = $GLOBALS['LANG']->sL('LLL:EXT:solrmanager/Resources/Private/Language/locallang.xml:search.manager.elevation.status.ok');
+				$errorMessage = '';
+			}
+			else if($success && empty($solrdocs)) {
+				$statusMessage = $GLOBALS['LANG']->sL('LLL:EXT:solrmanager/Resources/Private/Language/locallang.xml:search.manager.elevation.delete.status.ok');
+				$errorMessage = '';
+			}
+			$this->redirect("search", NULL, NULL, array("statusMessage" => $statusMessage, "errorMessage" => $errorMessage));
 		}
 	}
 
@@ -193,8 +211,11 @@ class Tx_Solrmanager_Controller_SearchController extends \TYPO3\CMS\Extbase\Mvc\
 	}
 	
 	protected function addStylesheets() {
-		$this->doc = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('mediumDoc');
-		$this->doc->getPageRenderer()->addCssFile(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('solrmanager') . 'Resources/Public/Stylesheets/solrmanager.css');
+		/* @var $doc mediumDoc */
+		$doc = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('mediumDoc');
+		$doc->getPageRenderer()->addCssFile(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('solrmanager') . 'Resources/Public/Stylesheets/solrmanager.css');
+		$doc->getPageRenderer()->addJsFile(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('solrmanager') . 'Resources/Public/JavaScript/jquery.js','text/javascript', false);
+		$doc->getPageRenderer()->addJsFile(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('solrmanager') . 'Resources/Public/JavaScript/solrmanager.js','text/javascript', false);
 	}
 }
 

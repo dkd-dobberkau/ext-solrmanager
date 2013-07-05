@@ -5,4 +5,10 @@
 	<f:if condition="{statusMessage} != ''">
 		<p class="status_ok">{statusMessage}</p>
 	</f:if>
+	<f:if condition="{errorMessage} != ''">
+		<p class="status_failed">{errorMessage}</p>
+	</f:if>
+	<f:if condition="{message} != ''">
+		<p class="message">{message}</p>
+	</f:if>
 </f:section>

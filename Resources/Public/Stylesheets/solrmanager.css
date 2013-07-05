@@ -1,6 +1,20 @@
 @CHARSET "US-ASCII";
 body {
-	margin: 20px;
+	padding: 20px;
+}
+.submit-wrapper {
+	width: 100%;
+}
+.submit-left {
+	width: 80%;
+	float: left;
+}
+.submit-right {
+
+}
+.result-wrapper {
+	margin-top: 15px;
+	width: 100%;
 }
 .result {
 	width: 100%;
@@ -17,9 +31,15 @@ body {
 	float: left;
 	margin-right: 20px;
 }
+
+.label {
+	font-style: italic;
+}
 .result-chbox {
-	width: 10%;
 	float: left;
+	margin-right: 15px;
+	text-align: right;
+	width: 50px;
 }
 .result:before,
 .result:after {
@@ -32,11 +52,42 @@ body {
 }
 .status_ok {
 	color: #06B10C;
-	font-size: 14px;
+	font-size: 12px;
+	font-weight: bold;
 	margin-top: 20px;
 }
 .status_failed {
 	color: #E32F0B;
-	font-size: 14px;
+	font-size: 12px;
+	font-weight: bold;
 	margin-top: 20px;
+}
+.message {
+	margin-top: 20px;
+	font-weight: bold;
+}
+.disabled, .disabled:active {
+	visibility: hidden;
+}
+.up-down {
+	width: 50px;
+	float: left;
+}
+.btn-move-up {
+	background: url('../Images/move-up.png') no-repeat;
+	width: 16px;
+	height: 16px;
+	margin-right: 5px;
+	display: block;
+	float: left;
+}
+.btn-move-down {
+	background: url('../Images/move-down.png') no-repeat;
+	width: 16px;
+	height: 16px;
+	display: block;
+	float: left;
+}
+.tx-solr-submit-cancel {
+	margin-right: 20px;
 }

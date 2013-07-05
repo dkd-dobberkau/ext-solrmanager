@@ -43,9 +43,7 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 	protected $configurationUrl = '';
 	protected $tomcatUrl = '';
 
-	protected $systemLanguages = array();
-
-
+	/* The content type for writing the elevate data in xml file */
 	const WRITE_CONTENT_TYPE = 'text/xml; charset=UTF-8';
 
 
@@ -96,7 +94,7 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 
 
 	/**
-	 * Initializes the Solr connection and tests the connection through a ping.
+	 * Initializes the Solr connection and tests the connection through a ping. Also gets all the solr cores.
 	 *
 	 * @param	integer	A page ID.
 	 * @param integer The language ID to get the configuration for as the path may differ. Optional, defaults to 0.
@@ -120,7 +118,6 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 	 */
 	protected function initializeConfiguration()
 	{
-		$solrConfiguration = array();
 		$sysPageObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('t3lib_pageSelect');
 		$rootLine = $sysPageObj->getRootLine(1);
 		$TSObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('t3lib_tsparser_ext');
@@ -147,7 +144,6 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 
 		foreach ($searchComponents as $searchComponentName) {
 			$searchComponent = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance($searchComponentName);
-			#$searchComponent->setSearchConfiguration($this->conf['search.']);
 
 			if ($searchComponent instanceof tx_solr_QueryAware) {
 				$searchComponent->setQuery($this->query);
@@ -164,7 +160,7 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 
 
 	/**
-	 * Marking Elevated Items in the Results with Solr 4.0 possible! e.g.: &fl=id,score,[elevated]
+	 * NOTE: Marking Elevated Items in the Results with Solr 4.0 possible! e.g.: &fl=id,score,[elevated]
 	 *
 	 * @param string $query The query String
 	 * @return array
@@ -222,9 +218,9 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 		}
 		else {
 			$document = array();
-			$document['title'] = "Solr is not available!";
+			$document['title'] = $GLOBALS['LANG']->sL('LLL:EXT:solrmanager/Resources/Private/Language/locallang.xml:search.manager.solr.notavailable');
 			$document['type'] = "";
-			$document['content'] = "Please check....";
+			$document['content'] = $GLOBALS['LANG']->sL('LLL:EXT:solrmanager/Resources/Private/Language/locallang.xml:search.manager.solr.notavailable2');
 			$resultDocuments[] = $document;
 		}
 		return $resultDocuments;
@@ -238,7 +234,8 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 	 */
 	public function writeContentElevation($queryParameter, $solrdocs) {
 		$success = false;
-		if($queryParameter != '' && !empty($solrdocs)) {
+
+		if($queryParameter != '') {
 			$url = $this->configurationUrl.'contentElevation';
 			$query = '';
 			$elevateQueries = $this->getElevateQueries();
@@ -254,19 +251,24 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 					$query .= '</query>';
 				}
 			}
-			// save the new query
-			$query .= '<query text="'.$queryParameter.'">';
-			foreach($solrdocs as $solrdoc) {
-				$query .= '<doc id="'.$solrdoc.'" />';
+
+			// save the new query if not empty
+			// otherwise the query will not be saved -> elevate is now deleted
+			if(!empty($solrdocs)) {
+
+				$query .= '<query text="'.$queryParameter.'">';
+				foreach($solrdocs as $solrdoc) {
+					$query .= '<doc id="'.$solrdoc.'" />';
+				}
+				$query .= '</query>';
 			}
-			$query .= '</query>';
 
 			// send elevate query per post
 			$rawPost = '<elevate>'.$query.'</elevate>';
 			$httpTransport = $this->getHttpTransport();
 			$httpResponse = $httpTransport->performPostRequest($url, $rawPost, WRITE_CONTENT_TYPE, false);
 			if($httpResponse->getStatusCode() == 200) {
-				$success = $this->reloadSolrcontext();
+				$success = $this->reloadSolrcores();
 			}
 		}
 		return $success;
@@ -300,6 +302,23 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 		return $elevateQueries;
 	}
 
+	/**
+	 *
+	 * @return boolean Return true if query is in elevate.xml
+	 */
+	public function hasKeywordsInElevateQueries($queryParameter) {
+		$hasKeywords = false;
+		if($queryParameter != '') {
+			$elevateQueries = $this->getElevateQueries();
+			foreach($elevateQueries as $elevateQuery){
+				if($elevateQuery[0] == $queryParameter) {
+					$hasKeywords = true;
+				}
+			}
+		}
+		return $hasKeywords;
+	}
+
 
 
 	/**
@@ -330,7 +349,7 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 	 *
 	 * @return boolean
 	 */
-	protected function reloadSolrcontext() {
+	protected function reloadSolrcores() {
 		$success = true;
 		$url = $this->tomcatUrl.'/solr/admin/cores?action=RELOAD&core=';
 		foreach($this->solrCores as $core) {
@@ -342,6 +361,5 @@ class Tx_Solrmanager_Controller_SolrController extends \TYPO3\CMS\Extbase\Mvc\Co
 		}
 
 		return $success;
-
 	}
 }

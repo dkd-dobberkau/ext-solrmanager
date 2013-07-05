@@ -10,7 +10,10 @@
 				<source>Please select a configuration type.</source>
 			</trans-unit>
 			<trans-unit id="search.manager.elevation.status.ok">
-				<source>Elevation was saved successfully.</source>
+				<source>Elevate query was saved successfully.</source>
+			</trans-unit>
+			<trans-unit id="search.manager.elevation.delete.status.ok">
+				<source>Elevate query was deleted successfully.</source>
 			</trans-unit>
 			<trans-unit id="search.manager.elevation.status.failed">
 				<source>Saving for elevation failed.</source>
@@ -24,9 +27,27 @@
            	<trans-unit id="search.manager.submit.search">
             	<source>Search</source>
             </trans-unit>
+            <trans-unit id="search.manager.submit.cancel">
+				<source>Back to Search</source>
+			</trans-unit>
 			<trans-unit id="search.manager.submit.elevate">
             	<source>Elevate</source>
-             </trans-unit>
+            </trans-unit>
+            <trans-unit id="search.manager.submit.delete.elevate">
+				<source>Delete elevation</source>
+			</trans-unit>
+			<trans-unit id="search.manager.solr.notavailable">
+				<source>Solr is not available</source>
+			</trans-unit>
+			<trans-unit id="search.manager.solr.notavailable2">
+				<source>Please check your configuration, Tomcat etc.</source>
+			</trans-unit>
+			<trans-unit id="search.manager.search.empty">
+				<source>Please enter your search term in the box above.</source>
+			</trans-unit>
+			<trans-unit id="search.manager.nothing.found">
+				<source>Nothing found for </source>
+			</trans-unit>
 		</body>
 	</file>
 </xliff>
